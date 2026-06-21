@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
           </div>
 
           <p style="color: #957A6E; font-size: 12px; text-align: center; margin-top: 24px;">
+            📬 <strong style="color: #5C3524;">Found this in Promotions?</strong> Move it to your Primary inbox so you don't miss our launch.<br><br>
             You're receiving this because you joined the waitlist at goalquest.club<br>
             <a href="mailto:support@goalquest.club" style="color: #5C3524;">Unsubscribe</a>
           </p>
