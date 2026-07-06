@@ -45,7 +45,13 @@ export default function Nav() {
         </div>
 
         {/* CTA */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center gap-3">
+          <a
+            href="/sponsor"
+            className="text-sm font-medium text-subtext hover:text-primary transition-colors"
+          >
+            Sponsor Login
+          </a>
           <a
             href="#waitlist"
             className="bg-primary text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-primary-dark transition-colors shadow-soft"
@@ -82,6 +88,13 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
+          <a
+            href="/sponsor"
+            onClick={() => setMenuOpen(false)}
+            className="text-sm font-medium text-subtext hover:text-primary"
+          >
+            Sponsor Login
+          </a>
           <a
             href="#waitlist"
             onClick={() => setMenuOpen(false)}
