@@ -41,6 +41,7 @@ export default function NewQuestPage() {
     deadline: '',
     maxParticipants: '500',
     proofMethods: ['photo'] as string[],
+    address: '',
   });
 
   const handleChange = (field: string, value: string) => {
@@ -69,7 +70,7 @@ export default function NewQuestPage() {
         reward: form.reward,
         reward_icon: form.rewardIcon,
         sponsor_logo: '🏪',
-        address: '',
+        address: form.address,
         deadline: form.deadline,
         max_participants: parseInt(form.maxParticipants, 10) || 500,
         proof_methods: form.proofMethods,
@@ -229,6 +230,24 @@ export default function NewQuestPage() {
             </div>
           </div>
 
+          {/* Location */}
+          <div className="bg-card border border-border rounded-2xl shadow-soft p-5">
+            <h2 className="font-semibold text-app-text text-sm mb-1">Location</h2>
+            <p className="text-subtext text-xs mb-4">
+              Where participants go to complete or redeem the quest. Shown as a pin on the in-app map.
+            </p>
+            <div>
+              <label className="block text-xs font-medium text-subtext mb-1.5">Street Address</label>
+              <input
+                type="text"
+                value={form.address}
+                onChange={(e) => handleChange('address', e.target.value)}
+                placeholder="e.g. 123 Main St, Cincinnati, OH 45202"
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
+              />
+            </div>
+          </div>
+
           {/* Proof Methods */}
           <div className="bg-card border border-border rounded-2xl shadow-soft p-5">
             <h2 className="font-semibold text-app-text text-sm mb-1">Accepted Proof Methods</h2>
@@ -321,6 +340,13 @@ export default function NewQuestPage() {
                 {form.description && (
                   <div className="mt-3 text-xs text-subtext leading-relaxed line-clamp-3">
                     {form.description}
+                  </div>
+                )}
+
+                {form.address && (
+                  <div className="mt-3 text-xs text-subtext flex items-start gap-1">
+                    <span>📍</span>
+                    <span className="line-clamp-2">{form.address}</span>
                   </div>
                 )}
 
