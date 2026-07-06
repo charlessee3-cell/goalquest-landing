@@ -126,9 +126,18 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
 
   useEffect(() => {
     const auth = localStorage.getItem('gq_sponsor_auth');
+    const token = localStorage.getItem('gq_sponsor_token');
     const name = localStorage.getItem('gq_sponsor_name') ?? '';
-    setIsAuthed(auth === '1');
-    setSponsorName(name);
+    // Require both the flag AND a real JWT token — clears stale pre-API sessions
+    if (auth === '1' && token) {
+      setIsAuthed(true);
+      setSponsorName(name);
+    } else {
+      // Clear any partial/stale auth state
+      localStorage.removeItem('gq_sponsor_auth');
+      localStorage.removeItem('gq_sponsor_name');
+      setIsAuthed(false);
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
