@@ -43,10 +43,11 @@ export default function SponsorLoginPage() {
     try {
       if (mode === 'signin') {
         await sponsorLogin(email.trim(), password);
+        router.push('/sponsor/dashboard');
       } else {
         await sponsorRegister({ name: name.trim(), email: email.trim(), password });
+        router.push('/sponsor/onboarding');
       }
-      router.push('/sponsor/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {

@@ -143,6 +143,22 @@ export async function sponsorRegister(body: {
   return data;
 }
 
+export async function sponsorUpdateProfile(body: {
+  name?: string;
+  contact_name?: string;
+  website?: string;
+  category?: string;
+  logo_emoji?: string;
+  description?: string;
+  onboarding_goals?: string;
+  onboarding_completed?: boolean;
+}) {
+  return apiFetch<{ sponsor: SponsorProfile }>('/sponsor/profile', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
 export function sponsorLogout() {
   localStorage.removeItem('gq_sponsor_token');
   localStorage.removeItem('gq_sponsor_name');
