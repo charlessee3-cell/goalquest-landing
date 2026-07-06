@@ -2,36 +2,55 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEMO_CREDENTIALS } from '@/lib/sponsorData';
+import { sponsorLogin, sponsorRegister } from '@/lib/sponsorApi';
+
+type Mode = 'signin' | 'signup';
 
 export default function SponsorLoginPage() {
+  const [mode, setMode] = useState<Mode>('signin');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  // If already authenticated, redirect to dashboard
   useEffect(() => {
     const auth = localStorage.getItem('gq_sponsor_auth');
-    if (auth === '1') {
+    const token = localStorage.getItem('gq_sponsor_token');
+    if (auth === '1' && token) {
       router.replace('/sponsor/dashboard');
     } else {
+      localStorage.removeItem('gq_sponsor_auth');
+      localStorage.removeItem('gq_sponsor_name');
       setLoading(false);
     }
   }, [router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError('');
+    setName('');
+    setEmail('');
+    setPassword('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      email.trim().toLowerCase() === DEMO_CREDENTIALS.email &&
-      password === DEMO_CREDENTIALS.password
-    ) {
-      localStorage.setItem('gq_sponsor_auth', '1');
-      localStorage.setItem('gq_sponsor_name', 'Fitness Zone Gym');
+    setError('');
+    setSubmitting(true);
+    try {
+      if (mode === 'signin') {
+        await sponsorLogin(email.trim(), password);
+      } else {
+        await sponsorRegister({ name: name.trim(), email: email.trim(), password });
+      }
       router.push('/sponsor/dashboard');
-    } else {
-      setError('Invalid email or password. Use the demo credentials below.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -60,10 +79,49 @@ export default function SponsorLoginPage() {
 
         {/* Card */}
         <div className="bg-card border border-border rounded-2xl shadow-medium p-6">
-          <h2 className="text-lg font-semibold text-app-text mb-1">Welcome back</h2>
-          <p className="text-subtext text-xs mb-5">Sign in to manage your quests and submissions</p>
+          {/* Mode tabs */}
+          <div className="flex rounded-xl bg-background border border-border p-1 mb-5">
+            <button
+              type="button"
+              onClick={() => switchMode('signin')}
+              className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                mode === 'signin'
+                  ? 'bg-primary text-white shadow-soft'
+                  : 'text-subtext hover:text-app-text'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('signup')}
+              className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                mode === 'signup'
+                  ? 'bg-primary text-white shadow-soft'
+                  : 'text-subtext hover:text-app-text'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-xs font-medium text-subtext mb-1.5">
+                  Business name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Fitness Zone Gym"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
+                  required
+                  autoComplete="organization"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-subtext mb-1.5">
                 Email address
@@ -72,7 +130,7 @@ export default function SponsorLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sponsor@goalquest.club"
+                placeholder="you@yourcompany.com"
                 className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
                 required
                 autoComplete="email"
@@ -87,10 +145,14 @@ export default function SponsorLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                minLength={mode === 'signup' ? 8 : undefined}
                 className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
                 required
-                autoComplete="current-password"
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
               />
+              {mode === 'signup' && (
+                <p className="text-subtext text-xs mt-1">At least 8 characters</p>
+              )}
             </div>
 
             {error && (
@@ -101,19 +163,23 @@ export default function SponsorLoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-primary text-white rounded-full py-2.5 text-sm font-semibold hover:bg-primary-dark transition-colors shadow-soft"
+              disabled={submitting}
+              className="w-full bg-primary text-white rounded-full py-2.5 text-sm font-semibold hover:bg-primary-dark transition-colors shadow-soft disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign In
+              {submitting
+                ? mode === 'signin' ? 'Signing in…' : 'Creating account…'
+                : mode === 'signin' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
         </div>
 
-        {/* Demo hint */}
-        <div className="mt-4 rounded-xl bg-primary-light border border-border px-4 py-3 text-xs text-subtext">
-          <div className="font-semibold text-primary mb-0.5">Demo credentials</div>
-          <div>{DEMO_CREDENTIALS.email}</div>
-          <div>Password: {DEMO_CREDENTIALS.password}</div>
-        </div>
+        {mode === 'signin' && (
+          <div className="mt-4 rounded-xl bg-primary-light border border-border px-4 py-3 text-xs text-subtext">
+            <div className="font-semibold text-primary mb-0.5">Test account</div>
+            <div>test-sponsor@goalquest.club</div>
+            <div>Password: TestPass123</div>
+          </div>
+        )}
       </div>
     </div>
   );

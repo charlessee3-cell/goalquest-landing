@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { sponsorLogin, sponsorLogout } from '@/lib/sponsorApi';
+import { sponsorLogin, sponsorLogout, sponsorRegister } from '@/lib/sponsorApi';
 
 interface SponsorShellProps {
   children: React.ReactNode;
@@ -122,6 +122,8 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [name, setName] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -153,6 +155,29 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const data = await sponsorRegister({ name: name.trim(), email: email.trim(), password });
+      setSponsorName(data.sponsor.name);
+      setIsAuthed(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchMode = (next: 'signin' | 'signup') => {
+    setMode(next);
+    setError('');
+    setName('');
+    setEmail('');
+    setPassword('');
   };
 
   const handleSignOut = () => {
@@ -187,8 +212,46 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
           </div>
 
           <div className="bg-card border border-border rounded-2xl shadow-medium p-6">
-            <h2 className="text-lg font-semibold text-app-text mb-5">Sign in to your account</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
+            {/* Mode tabs */}
+            <div className="flex rounded-xl bg-background border border-border p-1 mb-5">
+              <button
+                type="button"
+                onClick={() => switchMode('signin')}
+                className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                  mode === 'signin'
+                    ? 'bg-primary text-white shadow-soft'
+                    : 'text-subtext hover:text-app-text'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('signup')}
+                className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                  mode === 'signup'
+                    ? 'bg-primary text-white shadow-soft'
+                    : 'text-subtext hover:text-app-text'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+
+            <form onSubmit={mode === 'signin' ? handleLogin : handleRegister} className="space-y-4">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-medium text-subtext mb-1.5">Business name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Fitness Zone Gym"
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
+                    required
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-subtext mb-1.5">Email address</label>
                 <input
@@ -207,9 +270,13 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  minLength={mode === 'signup' ? 8 : undefined}
                   className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-app-text text-sm placeholder:text-subtext focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition"
                   required
                 />
+                {mode === 'signup' && (
+                  <p className="text-subtext text-xs mt-1">At least 8 characters</p>
+                )}
               </div>
 
               {error && (
@@ -223,7 +290,9 @@ export default function SponsorShell({ children, pendingCount = 0 }: SponsorShel
                 disabled={loading}
                 className="w-full bg-primary text-white rounded-full py-2.5 text-sm font-semibold hover:bg-primary-dark transition-colors shadow-soft disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing in…' : 'Sign In'}
+                {loading
+                  ? mode === 'signin' ? 'Signing in…' : 'Creating account…'
+                  : mode === 'signin' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
           </div>
