@@ -20,6 +20,8 @@ export interface ApiQuest {
   reward_icon: string;
   sponsor_logo: string;
   address: string;
+  latitude: number | null;
+  longitude: number | null;
   deadline: string;
   max_participants: number;
   proof_methods: string[];

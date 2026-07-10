@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getQuest, reviewSubmission, ApiQuest, ApiSubmission } from '@/lib/sponsorApi';
+import QuestMapDynamic from '@/components/QuestMapDynamic';
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -209,6 +210,20 @@ export default function QuestDetailPage() {
           <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: catColor }} />
         </div>
       </div>
+
+      {/* Location map */}
+      {(quest.address || quest.latitude != null) && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm">📍</span>
+            <h2 className="font-semibold text-app-text text-sm">Quest Location</h2>
+            {quest.address && (
+              <span className="text-subtext text-xs ml-auto">{quest.address}</span>
+            )}
+          </div>
+          <QuestMapDynamic quests={[quest]} height="260px" />
+        </div>
+      )}
 
       {/* Submissions */}
       <div>

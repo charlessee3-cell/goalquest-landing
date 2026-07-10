@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { getQuests, getSubmissions, ApiQuest, ApiSubmission } from '@/lib/sponsorApi';
+import QuestMapDynamic from '@/components/QuestMapDynamic';
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -262,6 +263,23 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Quest Location Map */}
+      {quests.some((q) => q.address || (q.latitude != null && q.longitude != null)) && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-app-text text-sm">Quest Locations</h2>
+            <span className="text-subtext text-xs">
+              {quests.filter((q) => q.address || q.latitude != null).length} quest
+              {quests.filter((q) => q.address || q.latitude != null).length !== 1 ? 's' : ''} on map
+            </span>
+          </div>
+          <QuestMapDynamic
+            quests={quests.filter((q) => q.address || (q.latitude != null && q.longitude != null))}
+            height="360px"
+          />
+        </div>
+      )}
     </div>
   );
 }
