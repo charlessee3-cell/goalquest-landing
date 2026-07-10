@@ -26,6 +26,7 @@ export interface ApiQuest {
   max_participants: number;
   proof_methods: string[];
   status: 'draft' | 'active' | 'ended';
+  auto_approve: boolean;
   // Computed stats from JOIN
   participants: number;
   pending_reviews: number;
@@ -188,6 +189,12 @@ export async function updateQuest(id: string, body: Partial<CreateQuestBody>) {
   return apiFetch<ApiQuest>(`/sponsor/quests/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
+  });
+}
+
+export async function approveAllSubmissions(questId: string) {
+  return apiFetch<{ approved: number; message?: string }>(`/sponsor/quests/${questId}/approve-all`, {
+    method: 'POST',
   });
 }
 

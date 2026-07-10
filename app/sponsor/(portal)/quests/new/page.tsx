@@ -42,6 +42,7 @@ export default function NewQuestPage() {
     maxParticipants: '500',
     proofMethods: ['photo'] as string[],
     address: '',
+    autoApprove: false,
   });
 
   const handleChange = (field: string, value: string) => {
@@ -74,6 +75,7 @@ export default function NewQuestPage() {
         deadline: form.deadline,
         max_participants: parseInt(form.maxParticipants, 10) || 500,
         proof_methods: form.proofMethods,
+        auto_approve: form.autoApprove,
         status: asDraft ? 'draft' : 'active',
       });
       setToast(asDraft ? 'Quest saved as draft!' : 'Quest published successfully!');
@@ -274,6 +276,38 @@ export default function NewQuestPage() {
                   <span className="text-sm font-medium text-app-text">{method.label}</span>
                 </label>
               ))}
+            </div>
+
+            {/* Auto-approve toggle */}
+            <div className="mt-4 pt-4 border-t border-border">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <div className="relative mt-0.5 flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={form.autoApprove}
+                    onChange={(e) => handleChange('autoApprove', e.target.checked as unknown as string)}
+                    className="sr-only"
+                  />
+                  <div
+                    onClick={() => setForm((p) => ({ ...p, autoApprove: !p.autoApprove }))}
+                    className={`w-10 h-6 rounded-full transition-colors cursor-pointer ${
+                      form.autoApprove ? 'bg-primary' : 'bg-border'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 bg-white rounded-full shadow transition-transform mt-1 ${
+                        form.autoApprove ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-app-text">Auto-approve submissions</div>
+                  <div className="text-xs text-subtext mt-0.5">
+                    Submitted proofs are instantly verified without manual review. Reward vouchers unlock immediately for participants.
+                  </div>
+                </div>
+              </label>
             </div>
           </div>
 

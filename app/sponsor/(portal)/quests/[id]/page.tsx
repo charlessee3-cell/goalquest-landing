@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getQuest, reviewSubmission, ApiQuest, ApiSubmission } from '@/lib/sponsorApi';
+import { getQuest, reviewSubmission, approveAllSubmissions, ApiQuest, ApiSubmission } from '@/lib/sponsorApi';
 import QuestMapDynamic from '@/components/QuestMapDynamic';
 
 function timeAgo(iso: string) {
@@ -227,16 +227,48 @@ export default function QuestDetailPage() {
 
       {/* Submissions */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-app-text">Submissions ({subs.length})</h2>
-          {pending.length > 0 && (
-            <span
-              className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
-              style={{ backgroundColor: 'var(--color-warning)' }}
-            >
-              {pending.length} pending
-            </span>
-          )}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="font-bold text-app-text">Submissions ({subs.length})</h2>
+            {quest.auto_approve && (
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full text-white flex items-center gap-1"
+                style={{ backgroundColor: 'var(--color-success)' }}
+              >
+                ⚡ Auto-approve ON
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {pending.length > 0 && !quest.auto_approve && (
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                style={{ backgroundColor: 'var(--color-warning, #C4892A)' }}
+              >
+                {pending.length} pending
+              </span>
+            )}
+            {pending.length > 0 && (
+              <button
+                onClick={async () => {
+                  try {
+                    const result = await approveAllSubmissions(quest.id);
+                    setSubs((prev) =>
+                      prev.map((s) =>
+                        s.status === 'pending' ? { ...s, status: 'approved' as const } : s
+                      )
+                    );
+                    showToast(`✅ ${result.approved} submission${result.approved !== 1 ? 's' : ''} approved`);
+                  } catch (err) {
+                    showToast(`Error: ${err instanceof Error ? err.message : 'Failed'}`);
+                  }
+                }}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+              >
+                Approve All ({pending.length})
+              </button>
+            )}
+          </div>
         </div>
 
         {subs.length === 0 ? (
